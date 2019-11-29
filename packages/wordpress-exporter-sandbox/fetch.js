@@ -23,17 +23,7 @@ const parser = require('yargs')
   .usage('\nUsage: fetch [options] <cmd> [args]')
   .option('host', {
     describe: 'choose a host',
-    default: 'https://www.freeletics.com/',
-  })
-  .option('lang', {
-    describe: 'choose locale',
-    default: 'en',
-    choices: ['en', 'fr', 'de', 'it', 'es', 'pt'],
-  })
-  .option('site', {
-    describe: 'choose a site',
-    default: 'blog',
-    choices: ['blog', 'knowledge'],
+    default: 'http://bel3raby.net/',
   })
   .command({
     command: 'posts',

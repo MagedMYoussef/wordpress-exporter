@@ -5,7 +5,7 @@ const options = require('yargs') // eslint-disable-line
   .usage('\nUsage: wordpress-exporter [options] <cmd> [args]')
   .option('host', {
     describe: 'choose a host',
-    default: 'https://www.freeletics.com',
+    default: 'http://bel3raby.net',
   })
   .option('lang', {
     describe: 'choose locale',
@@ -14,8 +14,8 @@ const options = require('yargs') // eslint-disable-line
   })
   .option('site', {
     describe: 'choose a site',
-    default: 'blog',
-    choices: ['blog', 'knowledge'],
+    default: 'bel3raby',
+    choices: ['bel3raby'],
   })
   .option('settings', {
     describe: 'provide settings file path',

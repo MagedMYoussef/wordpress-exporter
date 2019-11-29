@@ -162,8 +162,8 @@ async function processHtml({
         ]}?w=1232&fm=jpg&q=76&fl=progressive`,
     )
     // Replace urls to posts with the new url structure:
-    // https://www.freeletics.com/:locale/blog/:slug      => /:locale/blog/posts/:slug
-    // https://www.freeletics.com/:locale/knowledge/:slug => /:locale/blog/posts/:slug
+    // http://bel3raby.net/:locale/blog/:slug      => /:locale/blog/posts/:slug
+    // http://bel3raby.net/:locale/knowledge/:slug => /:locale/blog/posts/:slug
     .replace(
       POSTS_REGEX,
       (url, locale, site, slug) => `/${locale}/blog/posts/${slug}/)`,
@@ -254,7 +254,7 @@ export async function handler({
 
         // Keep mapping to generate nginx redirect
         urlsRewrite.push({
-          old: category.link.replace('https://www.freeletics.com', ''),
+          old: category.link.replace('http://bel3raby.net', ''),
           new: `/${lang}/blog/categories/${slug}/`,
         });
 
@@ -401,7 +401,7 @@ export async function handler({
 
       // Keep mapping to generate nginx redirect
       urlsRewrite.push({
-        old: post.link.replace('https://www.freeletics.com', ''),
+        old: post.link.replace('http://bel3raby.net', ''),
         new: `/${lang}/blog/posts/${slug}/`,
       });
 
