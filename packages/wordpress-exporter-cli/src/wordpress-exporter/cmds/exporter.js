@@ -4,7 +4,13 @@ import _ from 'lodash';
 import Promise from 'bluebird';
 import logger from '../logger';
 import { connect } from '../utils';
-import settings from '../../../settings';
+
+const jsdom = require('jsdom');
+
+const { JSDOM } = jsdom;
+
+const axios = require('axios');
+
 
 async function fetchFeaturedImage(wp, post) {
   const featuredImageId = post.featured_media;
@@ -31,9 +37,47 @@ async function fetchFeaturedImage(wp, post) {
   return post;
 }
 
+async function fetchViralPressContent(wp, post) {
+  const content = post.content.rendered;
+  if (content.length >= 10) {
+    return post;
+  }
+
+  logger.info('Will fetch the viralpress content.');
+
+  // try to get the post content from viralpress
+  let data = '';
+
+  logger.info(`Url ${post.link}`);
+
+  await axios.get(post.link)
+    .then((res) => {
+      logger.info('Fetched the viralpress content...');
+      const dom = new JSDOM(res.data);
+      const postInnerContent = dom.window.document.querySelector('div.vp-entry').innerHTML;
+      data = postInnerContent;
+    })
+    .catch((err) => {
+      logger.error(err);
+    });
+
+  return Object.assign(
+    {},
+    post,
+    { content: { rendered: data } },
+  );
+}
+
 async function fetchAllPosts(wp, categoryIds, { offset = 0, perPage = 100 } = {}) {
   let posts = await wp.posts().categories(categoryIds).perPage(perPage).offset(offset);
-  posts = await Promise.mapSeries(posts, async post => fetchFeaturedImage(wp, post));
+  posts = await Promise.mapSeries(posts, async (post) => {
+    let res = fetchFeaturedImage(wp, post);
+
+    // if the post is a viralpress post
+    res = fetchViralPressContent(wp, post);
+    return res;
+  });
+
 
   if (posts.length === perPage) {
     return posts.concat(await fetchAllPosts(wp, categoryIds, { offset: offset + perPage }));
@@ -53,7 +97,7 @@ async function fetchAllCategories(wp, { offset = 0, perPage = 100 } = {}) {
 }
 
 async function fetchAllTags(wp, { offset = 0, perPage = 100 } = {}) {
-  const tags = await wp.tags().perPage(perPage).offset(offset);
+  const tags = await wp.tags({ hideEmpty: true }).perPage(perPage).offset(offset);
 
   if (tags.length === perPage) {
     return tags.concat(await fetchAllTags(wp, { offset: offset + perPage }));
@@ -80,7 +124,7 @@ export function builder(yargs) {
 export async function handler({
   host, lang, site, dir,
 }) {
-  const wp = connect({ host, lang, site });
+  const wp = connect({ host });
   logger.info('Connection to Wordpress established.');
 
   try {
@@ -91,9 +135,7 @@ export async function handler({
     }
 
     logger.info('Fetching categories...');
-    const allCategories = await fetchAllCategories(wp);
-    const excludedCategoryIds = _.get(settings, `prepare.exclude.categories.${site}.${lang}`, []);
-    const categories = allCategories.filter(category => !excludedCategoryIds.includes(category.id));
+    const categories = await fetchAllCategories(wp);
     logger.info(`Retrieved ${categories.length} categories`);
 
     logger.info('Fetching tags...');
@@ -127,6 +169,7 @@ export async function handler({
     });
   } catch (error) {
     logger.error(error);
+    logger.info('Exiting...');
     process.exit(1);
   }
 }
