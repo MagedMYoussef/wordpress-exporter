@@ -45,7 +45,10 @@
     "turndown": "^4.0.1",
     "uniqid": "^4.1.1",
     "wpapi": "^1.1.2",
-    "yargs": "^10.0.3"
+    "yargs": "^10.0.3",
+    "node-html-parser": "^1.1.16",
+    "axios": "^0.19.0",
+    "jsdom": "^15.2.1"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
